@@ -5,6 +5,7 @@
     <property name="appengine.sdk" value="/usr/local/appengine-java-sdk-1.9.0"/>
     <property name="src.java.dir" value="src"/>
     <property name="build.web.dir" value="war"/>
+    <property name="test.dir" value="test"/>
     <property name="appengine.http.port" value="8080"/>
     <property name="appengine.debug.port" value="4000"/>
     <property name="jvmargs" value=""/>
@@ -14,11 +15,23 @@
 
     <path id="project.classpath">
         <pathelement path="${build.web.dir}/WEB-INF/classes" />
+        <pathelement path="${test.dir}/classes" />
         <fileset dir="${build.web.dir}/WEB-INF/lib">
             <include name="**/*.jar" />
         </fileset>
         <fileset dir="${appengine.sdk}/lib">
-            <include name="shared/**/*.jar" />
+            <include name="shared/**/*.jar"/>
+            <exclude name="shared/jsp/repackaged-appengine-ant-1.7.1.jar" />
+        </fileset>
+        <!-- Testing framework -->
+        <fileset dir="${appengine.sdk}/lib">
+            <include name="testing/*.jar" />
+        </fileset>
+        <fileset dir="${appengine.sdk}/lib">
+            <include name="impl/appengine-api-stubs.jar" />
+        </fileset>
+        <fileset dir="${appengine.sdk}/lib">
+            <include name="impl/appengine-api-labs.jar" />
         </fileset>
     </path>
 
@@ -52,6 +65,30 @@
     <target name="datanucleusenhance" depends="compile"
             description="Performs JDO/JPA enhancement on compiled data classes.">
         <enhance_war war="${build.web.dir}" api="JPA" />
+    </target>
+
+    <target name="compile-tests" depends="datanucleusenhance">
+        <mkdir dir="${test.dir}/classes"/>
+
+        <javac srcdir="${test.dir}/src" destdir="${test.dir}/classes">
+            <classpath>
+                <path refid="project.classpath"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="test" depends="compile-tests">
+        <junit printsummary="no" haltonfailure="no">
+          <formatter type="plain" usefile="false"/>
+          <classpath>
+            <path refid="project.classpath"/>
+          </classpath>
+          <batchtest fork="yes">
+            <fileset dir="${test.dir}/classes">
+              <include name="**/*Test.class"/>
+            </fileset>
+          </batchtest>
+        </junit>
     </target>
 
     <!-- Start Google App Engine Development Server -->

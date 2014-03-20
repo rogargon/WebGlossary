@@ -20,7 +20,7 @@ public class Glossary {
         EntityManager em = EMF.get().createEntityManager();
         try {
             Query q = em.createQuery("SELECT t FROM GlossaryEntry t "+
-                                     "WHERE lower(t.term) LIKE '"+letter+"%'");
+                                     "WHERE (UPPER(t.term) LIKE '"+Character.toUpperCase(letter)+"%')");
             terms = new ArrayList<GlossaryEntry>(q.getResultList());
         } finally {
             em.close();
